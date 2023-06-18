@@ -24,6 +24,7 @@ const ethereumClient = new EthereumClient(wagmiConfig, chains);
 
 function App() {
   const init = useAppStore((state) => state.init);
+  const activeWallet = useAppStore((state) => state.activeWallet);
   React.useEffect(() => {
     init();
   }, []);
@@ -33,6 +34,7 @@ function App() {
       <WagmiConfig config={wagmiConfig}>
         <div className="App">
           <header className="App-header space-y-2">
+            {activeWallet && <h1>Active Wallet - {activeWallet}</h1>}
             <MetamaskButton />
             <TrustWalletButton />
             <UnipassButton />

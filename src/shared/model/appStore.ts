@@ -25,8 +25,9 @@ type AppStoreState = {
 };
 type AppStoreActions = {
   init: () => void;
+  setActiveWallet: (type?: EWallet) => void;
   connectWallet: (type: EWallet) => Promise<void>;
-  disconnectWallets: () => void;
+  disconnectWallet: (type?: EWallet) => void;
 };
 type AppStore = AppStoreState & AppStoreActions;
 
@@ -45,6 +46,7 @@ export const useAppStore = create<AppStore>()((set, get) => ({
       set({ web3 });
     }
   },
+  setActiveWallet: (type) => set({ activeWallet: type ?? null }),
   connectWallet: async (type) => {
     const web3 = get().web3;
     if (web3) {
@@ -59,9 +61,10 @@ export const useAppStore = create<AppStore>()((set, get) => ({
           set({
             metamask: initialWalletStatus
           });
-          await window.ethereum?.request({
-            method: 'eth_requestAccounts'
-          });
+          window.ethereum?.enable();
+          // await window.ethereum?.request({
+          //   method: 'eth_requestAccounts'
+          // });
         }
         if (type === EWallet.TRUST_WALLET) {
           set({
@@ -111,11 +114,18 @@ export const useAppStore = create<AppStore>()((set, get) => ({
 
         if (type === EWallet.METAMASK)
           set({
-            metamask: finalWalletStatus
+            metamask: finalWalletStatus,
+            activeWallet: EWallet.METAMASK
           });
         if (type === EWallet.TRUST_WALLET)
           set({
-            trustWallet: finalWalletStatus
+            trustWallet: finalWalletStatus,
+            activeWallet: EWallet.TRUST_WALLET
+          });
+        if (type === EWallet.UNI_PASS)
+          set({
+            uniPass: finalWalletStatus,
+            activeWallet: EWallet.UNI_PASS
           });
       } catch (error) {
         const errorWalletStatus: TWallet = {
@@ -137,5 +147,19 @@ export const useAppStore = create<AppStore>()((set, get) => ({
       console.log('Web3 is not available');
     }
   },
-  disconnectWallets: () => set({ ...initialStoreState })
+  disconnectWallet: (type) => {
+    switch (type) {
+      case EWallet.METAMASK:
+        set({ metamask: null });
+        break;
+      case EWallet.TRUST_WALLET:
+        set({ trustWallet: null });
+        break;
+      case EWallet.UNI_PASS:
+        set({ uniPass: null });
+        break;
+      default:
+        set({ ...initialStoreState });
+    }
+  }
 }));
